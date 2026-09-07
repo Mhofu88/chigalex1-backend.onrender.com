@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GCV Roadmap — Chigalex1</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sora',sans-serif;background:#0D0A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+
+/* ── CARD ── */
+.card{width:100%;max-width:600px;background:linear-gradient(160deg,#0D0A1A 0%,#1A0D2E 50%,#0A1A1A 100%);border:2px solid rgba(245,197,24,0.4);border-radius:28px;overflow:hidden;box-shadow:0 0 80px rgba(123,45,139,0.4);}
+
+/* ── HEADER ── */
+.header{background:linear-gradient(135deg,#7B2D8B,#E8520A,#F5C518);padding:28px 24px;text-align:center;position:relative;}
+.header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F5C518,#E8520A,#7B2D8B,#00D4AA);}
+.logo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+.logo-circle{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;}
+.logo-name{font-size:1.3rem;font-weight:900;color:#fff;letter-spacing:.04em;}
+.header-title{font-size:1.6rem;font-weight:900;color:#fff;line-height:1.2;margin-bottom:6px;}
+.header-sub{font-size:.82rem;color:rgba(255,255,255,0.85);font-weight:600;}
+.flag-row{display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.flag{font-size:1.1rem;}
+
+/* ── INTRO BOX ── */
+.intro{background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.25);margin:16px;border-radius:14px;padding:14px 16px;text-align:center;}
+.intro p{color:#F5C518;font-size:.82rem;line-height:1.6;font-weight:600;}
+.intro strong{color:#fff;}
+
+/* ── PHASES ── */
+.phases{padding:0 16px 4px;}
+.phase{display:flex;gap:14px;margin-bottom:6px;position:relative;}
+.phase:not(:last-child)::after{content:'';position:absolute;left:27px;top:58px;bottom:-6px;width:2px;background:linear-gradient(180deg,rgba(245,197,24,0.5),transparent);z-index:0;}
+.phase-dot{width:54px;height:54px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;z-index:1;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+.phase-body{flex:1;background:rgba(255,255,255,0.04);border-radius:14px;padding:12px 14px;border:1px solid rgba(255,255,255,0.08);margin-bottom:10px;}
+.phase-pct{font-size:1.2rem;font-weight:900;margin-bottom:2px;}
+.phase-title{font-size:.82rem;font-weight:700;color:#F0EBF8;margin-bottom:4px;}
+.phase-desc{font-size:.74rem;color:#B8A8D8;line-height:1.5;margin-bottom:6px;}
+.phase-example{background:rgba(0,0,0,0.25);border-radius:8px;padding:7px 10px;font-size:.71rem;color:#00D4AA;line-height:1.45;}
+.phase-bar-wrap{margin-top:8px;height:5px;background:rgba(255,255,255,0.08);border-radius:100px;overflow:hidden;}
+.phase-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,#F5C518,#E8520A);}
+
+/* ── AFRICA BOX ── */
+.africa-box{margin:4px 16px 16px;background:linear-gradient(135deg,rgba(232,82,10,0.15),rgba(0,212,170,0.15));border:1.5px solid rgba(232,82,10,0.4);border-radius:14px;padding:14px 16px;text-align:center;}
+.africa-box .icon{font-size:1.8rem;margin-bottom:6px;}
+.africa-box p{color:#E8520A;font-size:.8rem;font-weight:700;line-height:1.6;}
+.africa-box span{color:#B8A8D8;font-weight:400;}
+
+/* ── FOOTER ── */
+.footer{background:rgba(0,0,0,0.4);padding:14px 20px;text-align:center;border-top:1px solid rgba(255,255,255,0.08);}
+.footer-ref{font-size:.9rem;font-weight:800;color:#F5C518;margin-bottom:4px;}
+.footer-url{font-size:.75rem;color:#9B59B6;margin-bottom:6px;}
+.footer-note{font-size:.68rem;color:#7A6A9A;}
+.badge-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.badge{background:rgba(123,45,139,0.2);border:1px solid rgba(123,45,139,0.4);color:#9B59B6;border-radius:100px;padding:3px 12px;font-size:.68rem;font-weight:700;}
+
+/* ── DOWNLOAD BTN ── */
+.download-area{margin-top:20px;text-align:center;}
+.dl-btn{background:linear-gradient(135deg,#7B2D8B,#9B59B6);color:#fff;border:none;padding:13px 32px;border-radius:100px;font-family:'Sora',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(123,45,139,0.5);transition:transform 0.2s;}
+.dl-btn:hover{transform:translateY(-2px);}
+.dl-note{color:#7A6A9A;font-size:.75rem;margin-top:8px;}
+
+@media(max-width:420px){.header-title{font-size:1.3rem;}.phase-pct{font-size:1rem;}}
+</style>
+</head>
+<body>
+
+<div class="card" id="gcv-card">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-circle">π</div>
+      <div class="logo-name">Chigalex1</div>
+    </div>
+    <div class="header-title">The GCV Roadmap<br/>10% → 100%</div>
+    <div class="header-sub">Africa's Pi Network Strategy Guide</div>
+    <div class="flag-row">
+      <span class="flag">🇿🇼</span><span class="flag">🇳🇬</span><span class="flag">🇰🇪</span>
+      <span class="flag">🇿🇦</span><span class="flag">🇬🇭</span><span class="flag">🇪🇹</span>
+      <span class="flag">🇹🇿</span><span class="flag">🇪🇬</span><span class="flag">🇸🇳</span>
+      <span class="flag">🇨🇩</span><span class="flag">🇷🇼</span><span class="flag">🇲🇦</span>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <p>⚡ <strong>GCV has NOT been set yet.</strong><br/>
+    The businesses that start accepting Pi at 10% TODAY<br/>
+    are the ones who WIN when GCV reaches 100%.</p>
+  </div>
+
+  <!-- PHASES -->
+  <div class="phases">
+
+    <div class="phase">
+      <div class="phase-dot" style="background:linear-gradient(135deg,#E8520A,#F5C518);">🌱</div>
+      <div class="phase-body">
+        <div class="phase-pct" style="color:#E8520A;">Phase 1 — 10% GCV</div>
+        <div class="phase-title">Start Small. Build Habit. TODAY.</div>
+        <div class="phase-desc">Accept Pi for 10% of your sales. Build reserves quietly while fiat covers costs. First mover advantage begins HERE.</div>
+        <div class="phase-example">🛒 Haircut = $10 OR 10π. Accept Pi for 1 in 10 customers.</div>
+        <div class="phase-bar-wrap"><div class="phase-bar" style="width:10%;"></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-dot" style="background:linear-gradient(135deg,#7B2D8B,#9B59B6);">📈</div>
+      <div class="phase-body">
+        <div class="phase-pct" style="color:#9B59B6;">Phase 2 — 25% GCV</div>
+        <div class="phase-title">Growing Confidence. Growing Reserves.</div>
+        <div class="phase-desc">More pioneers in your city. More Pi transactions. Your Pi wallet growing in value as GCV rises.</div>
+        <div class="phase-example">🏪 1 in 4 grocery transactions in Pi. Reserves significant.</div>
+        <div class="phase-bar-wrap"><div class="phase-bar" style="width:25%;"></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-dot" style="background:linear-gradient(135deg,#00D4AA,#006d56);">⚡</div>
+      <div class="phase-body">
+        <div class="phase-pct" style="color:#00D4AA;">Phase 3 — 50% GCV</div>
+        <div class="phase-title">Half the Economy Runs on Pi.</div>
+        <div class="phase-desc">Half your transactions in Pi. Pay suppliers, rent, wages partially in Pi. Local Pi economy self-sustaining.</div>
+        <div class="phase-example">🏙️ Harare · Lagos · Nairobi — 50% Pi markets.</div>
+        <div class="phase-bar-wrap"><div class="phase-bar" style="width:50%;"></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-dot" style="background:linear-gradient(135deg,#F5C518,#E8520A);">🌍</div>
+      <div class="phase-body">
+        <div class="phase-pct" style="color:#F5C518;">Phase 4 — 75% GCV</div>
+        <div class="phase-title">Pi Becomes the Dominant Currency.</div>
+        <div class="phase-desc">Cross-border African trade in Pi. No exchange fees. No bank delays. Instant settlement continent-wide.</div>
+        <div class="phase-example">🌐 Zimbabwe ↔ South Africa trade in Pi. Zero fees.</div>
+        <div class="phase-bar-wrap"><div class="phase-bar" style="width:75%;"></div></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-dot" style="background:linear-gradient(135deg,#F5C518,#00D4AA);">🏆</div>
+      <div class="phase-body">
+        <div class="phase-pct" style="color:#F5C518;">Phase 5 — 100% GCV</div>
+        <div class="phase-title">Full Pi Economy. Africa Leads the World.</div>
+        <div class="phase-desc">GCV fully established. Pioneers who started at Phase 1 hold the most Pi. Africa becomes the world's largest Pi economy.</div>
+        <div class="phase-example">🏆 The pioneers who said YES at 10% WIN at 100%.</div>
+        <div class="phase-bar-wrap"><div class="phase-bar" style="width:100%;"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AFRICA BOX -->
+  <div class="africa-box">
+    <div class="icon">🌍</div>
+    <p>Africa's Advantage<br/>
+    <span>1.4 billion people · Young · Mobile-first · Underserved by banks.<br/>
+    Africa is the perfect soil for Pi. The window is open NOW.</span></p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-ref">📲 Referral Code: chigalex1</div>
+    <div class="footer-url">minepi.com/chigalex1 · chigalex1-backend.onrender.com</div>
+    <div class="badge-row">
+      <span class="badge">54 Nations</span>
+      <span class="badge">22 Languages</span>
+      <span class="badge">🏛️ Africa Pi GCV Alliance</span>
+    </div>
+    <div class="footer-note" style="margin-top:8px;">Open in Pi Browser · Chigalex1 is independent — not affiliated with Pi Network or SocialChain Inc.</div>
+  </div>
+
+</div>
+
+<!-- DOWNLOAD BUTTON -->
+<div class="download-area">
+  <button class="dl-btn" onclick="downloadImage()">📸 Save as Image (Share on WhatsApp/Facebook)</button>
+  <div class="dl-note">Tap to save · Then share directly to WhatsApp, Facebook, Telegram</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+async function downloadImage(){
+  const btn = document.querySelector('.dl-btn');
+  btn.textContent = '⏳ Generating image...';
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas(document.getElementById('gcv-card'), {
+      scale: 2,
+      backgroundColor: '#0D0A1A',
+      useCORS: true,
+      logging: false
+    });
+    const link = document.createElement('a');
+    link.download = 'Chigalex1_GCV_Roadmap.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = '✅ Image saved! Share it everywhere 🌍';
+    setTimeout(()=>{ btn.textContent='📸 Save as Image (Share on WhatsApp/Facebook)'; btn.disabled=false; }, 3000);
+  } catch(e) {
+    btn.textContent = '📸 Save as Image';
+    btn.disabled = false;
+    alert('To save: Take a screenshot of the card above and share it!');
+  }
+}
+</script>
+</body>
+</html>
