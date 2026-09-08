@@ -6928,6 +6928,10 @@ function setLang(l) {
 
   // Update language buttons
   document.querySelectorAll('.lbtn').forEach(b => {
-    b.classList.toggle('on', b.dataset.lang === l);
-  });
-}
+  b.classList.toggle('on', b.dataset.lang === l);
+      });
+    } catch(e) {
+      alert('setLang error: ' + e.message);
+    }
+} 
+    
