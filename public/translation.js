@@ -6905,6 +6905,7 @@ kg: {"gate-badge-txt":"🌍 Africa Pi Network Education Hub",
 
 // ══ setLang function ══
 function setLang(l) {
+ try {
   if (!translations[l]) l = 'en';
   const t = translations[l];
   document.documentElement.dir = (l === 'ar') ? 'rtl' : 'ltr';
@@ -6915,7 +6916,7 @@ function setLang(l) {
 
   // Update all elements
   Object.keys(t).forEach(id => {
-    const el = document.getElementById(id);
+  const el = document.getElementById(id);
     if (!el) return;
     const htmlIds = ['hero-p','alliance-box-body','gcv-explain-1','gcv-explain-2','gcv-power-tip','gcv-expert-body','unlock-prompt-body','aboutpi-tip','disclaimer-body'];
     if (htmlIds.includes(id)) {
