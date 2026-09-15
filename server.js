@@ -17,23 +17,7 @@ app.use("/payments", paymentsRouter);
 app.use("/auth", authRouter);
 app.use("/", appDevRouter);
 app.use(express.static(path.join(__dirname, 'public')));
-app.get("/api/check-a2u", async (req,res)=>{
-  try {
-    const piRes = await fetch("https://api.testnet.minepi.com/v2/payments?limit=50", {
-      headers:{ "Authorization": `Key ${process.env.PI_API_KEY}` }
-    });
-    const data = await piRes.json();
-    const a2u = data.filter(p => p.amount && p.to_address); // A2U payments
-    const uniqueUsers = [...new Set(a2u.map(p => p.user_uid))];
-    res.json({
-      total_payments: data.length,
-      a2u_payments: a2u.length,
-      unique_wallets: uniqueUsers.length,
-      wallets: uniqueUsers,
-      details: a2u.slice(0,10)
-    });
-  } catch(e){ res.json({error:e.message}); }
-});
+
 // ════════════════════════════════════════════
 // ── REDIS ──
 // ════════════════════════════════════════════
