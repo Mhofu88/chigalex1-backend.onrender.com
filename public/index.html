@@ -1870,8 +1870,8 @@ function showGate(){ document.getElementById('gate').style.display='flex'; windo
 function browseFreely(){
   document.getElementById('gate').style.display='none';
   loadFaqs();
-  renderAdverts();
-  loadPricing();
+  if (adsSupported) { renderAdverts(); }
+   loadPricing();
   loadLeaderboard('all');
 }
 
@@ -1929,7 +1929,6 @@ async function piPay(){
 
 function resetPayBtn(){const b=document.getElementById('payBtn');b.disabled=false;b.innerHTML='💳 Pay <span class="live-price-membership">0.01</span>π &amp; Unlock Full Training';}
 function handleIncomplete(p){console.log('Incomplete:',p);}
-
 function openApp(){
   document.getElementById('gate').style.display='none';
   if(piUser){
@@ -1958,7 +1957,8 @@ function openApp(){
     if(s) s.textContent='Free Preview · Upgrade for Full Access';
   }
 
-  loadFaqs(); loadAnswers(); renderAdverts(); renderMerchants();
+  loadFaqs(); loadAnswers(); if (adsSupported) { renderAdverts(); } renderMerchants();
+  
   loadPricing();
   loadLeaderboard('all');
   if(isPaid && piUser) loadAmbassadorDashboard(piUser.username);
@@ -1982,7 +1982,7 @@ function setErr(m){document.getElementById('gerr').textContent=m;}
 function requirePaid(id){ if(isPaid){ sc(id); return; } showGate(); }
 function sc(id){
   document.getElementById('gate').style.display='none';
-  loadFaqs(); loadAnswers(); renderAdverts(); renderMerchants();
+ loadFaqs(); loadAnswers(); if (adsSupported) { renderAdverts(); } renderMerchants(); 
   setTimeout(()=>{ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth'}); },150);
 }
 function swTab(n,el){ document.querySelectorAll('#learn-content .tc').forEach(t=>t.classList.remove('on')); document.querySelectorAll('#learn-content .tab').forEach(t=>t.classList.remove('on')); document.getElementById('tc-'+n).classList.add('on'); el.classList.add('on'); }
