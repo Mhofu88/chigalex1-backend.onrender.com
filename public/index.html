@@ -1852,9 +1852,19 @@ const SAMPLE_ADVERTS = [
 
 loadPricing();
 
-try { Pi.init({ version:"2.0", sandbox:false }); }
-catch(e){ console.warn('Pi SDK: open in Pi Browser'); }
-
+let adsSupported = false;
+try {
+  Pi.init({ version:"2.0", sandbox:false });
+  (async () => {
+    try {
+      const nativeFeaturesList = await Pi.nativeFeaturesList();
+      adsSupported = nativeFeaturesList.includes('ad_network');
+    } catch(e) {
+      console.warn('Ad support check failed:', e);
+    }
+  })();
+} catch(e){ console.warn('Pi SDK: open in Pi Browser'); }
+ 
 function showGate(){ document.getElementById('gate').style.display='flex'; window.scrollTo(0,0); }
 
 function browseFreely(){
