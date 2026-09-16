@@ -469,8 +469,8 @@ app.post('/admin/test-payout', async (req, res) => {
 
     res.json({ success: true, paymentId, txid, completedPayment });
   } catch (error) {
-    console.error('Payout error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Payout error:', error.response?.data || error.message);
+    res.status(500).json({ error: error.response?.data || error.message });
   }
 });
 // ════════════════════════════════════════════
