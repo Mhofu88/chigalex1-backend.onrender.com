@@ -463,7 +463,6 @@ app.post('/admin/test-payout', async (req, res) => {
       metadata: { type: 'mainnet_eligibility_test' },
       uid: uid
     };
-
     const paymentId = await pi.createPayment(paymentData);
     const txid = await pi.submitPayment(paymentId);
     const completedPayment = await pi.completePayment(paymentId, txid);
