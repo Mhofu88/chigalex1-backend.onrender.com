@@ -441,7 +441,7 @@ app.get('/health', (req, res) => {
   });
 });
 const PiNetwork = require('pi-backend');
-const pi = new PiNetwork(process.env.PI_API_KEY, process.env.APP_WALLET_SEED_TESTNET);
+const pi = new PiNetwork(process.env.PI_API_KEY, process.env.APP_WALLET_SEED);
 
 app.post('/admin/test-payout', async (req, res) => {
   try {
