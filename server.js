@@ -441,38 +441,7 @@ app.get('/health', (req, res) => {
   });
 });
 const PiNetwork = require('pi-backend');
-const pi = new PiNetwork(process.env.PI_API_KEY, process.env.APP_WALLET_SEED_TESTNET);
 
-app.post('/admin/test-payout', async (req, res) => {
-  try {
-    const adminKey = req.headers['x-admin-key'];
-    if (adminKey !== process.env.ADMIN_KEY) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    const { uid, amount, memo } = req.body;
-
-    if (!uid || !amount) {
-      return res.status(400).json({ error: 'uid and amount are required' });
-    }
-
-    const paymentData = {
-      amount: amount,
-      memo: memo || 'Chigalex1 test payout',
-      metadata: { type: 'mainnet_eligibility_test' },
-      uid: uid
-    };
-
-    const paymentId = await pi.createPayment(paymentData);
-    const txid = await pi.submitPayment(paymentId);
-    const completedPayment = await pi.completePayment(paymentId, txid);
-
-    res.json({ success: true, paymentId, txid, completedPayment });
-  } catch (error) {
-    console.error('Payout error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
 // ════════════════════════════════════════════
 // ── PI DOMAIN VALIDATION KEY ──
 // ════════════════════════════════════════════
