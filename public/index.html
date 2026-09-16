@@ -1879,8 +1879,8 @@ async function piLogin(){
   const btn=document.getElementById('loginBtn');
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>Connecting to Pi...'; setErr('');
   try{
-    const auth=await Pi.authenticate(['username','payments'],handleIncomplete);
-    piUser=auth.user;
+ const auth=await Pi.authenticate(['username','payments','wallet_address'],handleIncomplete);   
+piUser=auth.user;
     alert("Your UID: " + piUser.uid); // TEMPORARY - remove after collecting test UIDs
     document.getElementById('uinfo').style.display='block';
     document.getElementById('uinfo').innerHTML='✅ Logged in as <strong style="color:#F5C518;">@'+piUser.username+'</strong>';
