@@ -440,7 +440,7 @@ app.get('/health', (req, res) => {
     redis: redis ? 'connected' : 'not configured'
   });
 });
-const PiNetwork = require('pi-backend');
+const PiNetwork = require('pi-backend').default;
 const pi = new PiNetwork(process.env.PI_API_KEY, process.env.APP_WALLET_SEED_TESTNET);
 
 app.post('/admin/test-payout', async (req, res) => {
