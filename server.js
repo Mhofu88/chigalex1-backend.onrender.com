@@ -440,6 +440,19 @@ app.get('/health', (req, res) => {
     redis: redis ? 'connected' : 'not configured'
   });
 });
+app.post('/api/verify-user', async (req, res) => {
+  const { accessToken } = req.body;
+  if (!accessToken) return res.status(400).json({ error: 'accessToken required' });
+  try {
+    const response = await fetch('https://api.minepi.com/v2/me', {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 const PiNetwork = require('pi-backend').default;
 const pi = new PiNetwork(process.env.PI_API_KEY, process.env.APP_WALLET_SEED_TESTNET);
 
