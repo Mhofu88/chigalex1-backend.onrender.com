@@ -1881,8 +1881,15 @@ async function piLogin(){
   try{
  const auth=await Pi.authenticate(['username','payments','wallet_address'],handleIncomplete);   
 piUser=auth.user;
-    alert("Your UID: " + piUser.uid); // TEMPORARY - remove after collecting test UIDs
-    document.getElementById('uinfo').style.display='block';
+
+const verifyRes = await fetch(API + '/api/verify-user', {
+  method: 'POST',
+  headers: {'Content-Type':'application/json'},
+  body: JSON.stringify({ accessToken: auth.accessToken })
+});
+const verifiedData = await verifyRes.json();
+alert("Client UID: " + piUser.uid + "\nVerified UID: " + (verifiedData.uid || JSON.stringify(verifiedData)));
+document.getElementById('uinfo').style.display='block';
     document.getElementById('uinfo').innerHTML='✅ Logged in as <strong style="color:#F5C518;">@'+piUser.username+'</strong>';
     btn.style.display='none';
     if(OWNER_ACCOUNTS.includes(piUser.username.toLowerCase())){
