@@ -454,8 +454,7 @@ app.post('/api/verify-user', async (req, res) => {
   }
 });
 const PiNetwork = require('pi-backend').default;
-const pi = new PiNetwork(process.env.PI_API_KEY, process.env.APP_WALLET_SEED_TESTNET);
-
+const pi = new PiNetwork(process.env.PI_API_KEY_TESTNET, process.env.APP_WALLET_SEED_TESTNET);
 app.post('/admin/test-payout', async (req, res) => {
   try {
     const adminKey = req.headers['x-admin-key'];
