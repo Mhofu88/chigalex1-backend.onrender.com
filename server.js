@@ -468,14 +468,14 @@ app.post('/admin/test-payout', async (req, res) => {
       return res.status(400).json({ error: 'uid and amount are required' });
     }
 
-    const paymentData = {
-      amount: amount,
-      memo: memo || 'Chigalex1 test payout',
-      metadata: { type: 'mainnet_eligibility_test' },
-      uid: uid
-    };
-
-    const paymentId = await pi.createPayment(paymentData);
+  const paymentData = {
+  amount: amount,
+  memo: memo || 'Chigalex1 test payout',
+  metadata: { type: 'testnet_eligibility_test' },
+  uid: uid,
+  network: 'Pi Testnet'
+};
+const paymentId = await pi.createPayment(paymentData);
     const txid = await pi.submitPayment(paymentId);
     const completedPayment = await pi.completePayment(paymentId, txid);
 
