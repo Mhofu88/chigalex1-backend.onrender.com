@@ -1869,6 +1869,196 @@ countries: [...new Set(approved.map(a => a.country))].sort(),
   }
 });
 
+// ════════════════════════════════════════════════════════════════
+// ── BIZAPP ZW • HILEX LEAD FUNNEL ──
+// Public submissions from: https://bizappzw.co.zw/hilex/
+// Admin access requires x-admin-key
+// ════════════════════════════════════════════════════════════════
+
+const HILEX_LEADS_KEY = 'bizapp:hilex:leads';
+
+// 1. PUBLIC — Receive a business lead from the HILEX funnel
+app.post('/bizapp/hilex-leads', rateLimit(10, 60_000), async (req, res) => {
+  if (!requireRedis(res)) return;
+
+  try {
+    const businessName = sanitizeString(req.body.businessName, 120);
+    const contactName  = sanitizeString(req.body.contactName, 120);
+    const country      = sanitizeString(req.body.country, 80);
+    const phone        = sanitizeString(req.body.phone, 60);
+    const email        = sanitizeString(req.body.email, 254);
+
+    if (!businessName || !contactName || !country || !phone) {
+      return res.status(400).json({
+        error: 'Business name, contact name, country and phone are required'
+      });
+    }
+
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+
+    const now = new Date().toISOString();
+
+    const lead = {
+      id: `hilex_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      reference: `HILEX-${Date.now().toString(36).toUpperCase()}`,
+      source: 'hilex',
+
+      businessName,
+      contactName,
+      country,
+      phone,
+      email,
+
+      domain: sanitizeString(req.body.domain, 120),
+      onlinePresence: sanitizeString(req.body.onlinePresence, 120),
+      catalogue: sanitizeString(req.body.catalogue, 120),
+      payments: sanitizeString(req.body.payments, 120),
+
+      needs: Array.isArray(req.body.needs)
+        ? req.body.needs.slice(0, 20).map(v => sanitizeString(String(v), 100))
+        : [],
+
+      gaps: Array.isArray(req.body.gaps)
+        ? req.body.gaps.slice(0, 20).map(v => sanitizeString(String(v), 100))
+        : [],
+
+      priority: sanitizeString(req.body.priority, 100),
+      recommendedPath: sanitizeString(req.body.recommendedPath, 120),
+      notes: sanitizeString(req.body.notes, 1000),
+
+      status: 'New',
+      adminNote: '',
+      submittedAt: now,
+      updatedAt: now
+    };
+
+    let leads = [];
+
+    const stored = await redis.get(HILEX_LEADS_KEY);
+
+    if (stored) {
+      leads = typeof stored === 'string' ? JSON.parse(stored) : stored;
+      if (!Array.isArray(leads)) leads = [];
+    }
+
+    leads.unshift(lead);
+
+    // Safety limit — retain latest 2,000 leads
+    if (leads.length > 2000) {
+      leads = leads.slice(0, 2000);
+    }
+
+    await redis.set(HILEX_LEADS_KEY, JSON.stringify(leads));
+
+    await trackEvent('bizapp_hilex_lead');
+
+    console.log(`🚀 New HILEX BizApp lead: ${lead.reference} — ${businessName}`);
+
+    res.status(201).json({
+      success: true,
+      reference: lead.reference,
+      message: 'Your business assessment has been received successfully.'
+    });
+
+  } catch (err) {
+    console.error('HILEX lead submission error:', err);
+    res.status(500).json({ error: 'Failed to submit business assessment' });
+  }
+});
+
+
+// 2. ADMIN — Load all HILEX → BizApp leads
+app.get('/admin/bizapp/hilex-leads', async (req, res) => {
+  if (!validateAdminKey(req, res)) return;
+  if (!requireRedis(res)) return;
+
+  try {
+    const stored = await redis.get(HILEX_LEADS_KEY);
+
+    let leads = [];
+
+    if (stored) {
+      leads = typeof stored === 'string' ? JSON.parse(stored) : stored;
+      if (!Array.isArray(leads)) leads = [];
+    }
+
+    res.json({
+      success: true,
+      total: leads.length,
+      leads
+    });
+
+  } catch (err) {
+    console.error('Load HILEX leads error:', err);
+    res.status(500).json({ error: 'Failed to load HILEX leads' });
+  }
+});
+
+
+// 3. ADMIN — Update lead status / private admin note
+app.post('/admin/bizapp/hilex-leads/status', async (req, res) => {
+  if (!validateAdminKey(req, res)) return;
+  if (!requireRedis(res)) return;
+
+  try {
+    const id = sanitizeString(req.body.id, 120);
+    const status = sanitizeString(req.body.status, 40);
+    const adminNote = sanitizeString(req.body.adminNote, 1000);
+
+    if (!id) {
+      return res.status(400).json({ error: 'Lead id is required' });
+    }
+
+    const allowedStatuses = [
+      'New',
+      'Contacted',
+      'Qualified',
+      'Quoted',
+      'In Progress',
+      'Won',
+      'Lost',
+      'Hold'
+    ];
+
+    if (status && !allowedStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid lead status' });
+    }
+
+    const stored = await redis.get(HILEX_LEADS_KEY);
+
+    let leads = stored
+      ? (typeof stored === 'string' ? JSON.parse(stored) : stored)
+      : [];
+
+    if (!Array.isArray(leads)) leads = [];
+
+    const index = leads.findIndex(lead => lead.id === id);
+
+    if (index === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+
+    if (status) leads[index].status = status;
+
+    leads[index].adminNote = adminNote;
+    leads[index].updatedAt = new Date().toISOString();
+
+    await redis.set(HILEX_LEADS_KEY, JSON.stringify(leads));
+
+    res.json({
+      success: true,
+      message: 'Lead updated successfully',
+      lead: leads[index]
+    });
+
+  } catch (err) {
+    console.error('Update HILEX lead error:', err);
+    res.status(500).json({ error: 'Failed to update HILEX lead' });
+  }
+});
+
 // ════════════════════════════════════════════
 // ── CATCH-ALL — MUST BE LAST ──
 // ════════════════════════════════════════════
