@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hatfield Elite Academy</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0d3d2b">
+<style>
+  :root{
+    --forest:#0d3d2b; --forest-deep:#082a1d; --forest-mid:#155c3f; --leaf:#2f8f5e;
+    --gold:#c9a83b; --cream:#f7f5ee; --paper:#ffffff; --ink:#12241c; --muted:#5b6d63; --line:#e2e6de;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif; background:var(--cream); color:var(--ink); padding-bottom:70px;}
+  .app-header{background:var(--forest); color:#fff; padding:14px 18px 26px; display:flex; align-items:center; gap:12px;}
+  .crest{width:44px;height:44px;border-radius:50%; flex:none; background:#fff; display:flex;align-items:center;justify-content:center; padding:3px; box-sizing:border-box;}
+  .crest img{width:100%; height:100%; object-fit:contain;}
+  .app-header h1{font-size:16px; margin:0;}
+  .app-header p{font-size:11px; margin:2px 0 0; opacity:.85;}
+
+  main{max-width:640px; margin:-16px auto 0; padding:0 14px;}
+  .card{background:var(--paper); border-radius:16px; box-shadow:0 6px 18px rgba(13,61,43,0.08); margin-bottom:16px; overflow:hidden;}
+  .card-head{padding:14px 16px 6px; display:flex; justify-content:space-between; align-items:center;}
+  .card-head h2{font-size:14px; color:var(--forest); margin:0;}
+  .card-body{padding:4px 16px 16px;}
+  .empty{font-size:12.5px; color:var(--muted); padding:10px 0;}
+  .loading{font-size:12.5px; color:var(--muted); padding:10px 0;}
+
+  .item{border-bottom:1px solid var(--line); padding:10px 0;}
+  .item:last-child{border-bottom:none;}
+  .item .t{font-size:13px; font-weight:700; color:var(--ink); margin:0 0 3px;}
+  .item .d{font-size:11.5px; color:var(--muted); margin:0;}
+  .item .meta{font-size:10.5px; color:var(--gold); font-weight:700; text-transform:uppercase; letter-spacing:.04em;}
+
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th,td{text-align:left; padding:7px 4px; border-bottom:1px solid var(--line);}
+  th{color:var(--muted); font-weight:700; font-size:10.5px; text-transform:uppercase;}
+
+  .fee-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;}
+  .fee-row:last-child{border-bottom:none;}
+  .fee-row .amt{font-weight:800; color:var(--forest);}
+
+  form.pay-form{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  form.pay-form input, form.pay-form select{padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-size:13px; font-family:inherit;}
+  form.pay-form button{background:var(--gold); color:var(--forest-deep); border:none; border-radius:8px; padding:10px; font-weight:800; font-size:13px; cursor:pointer;}
+  .note-box{border-left:3px solid var(--gold); padding:8px 12px; margin:0 0 10px; background:#fbf8ef; font-size:11.5px; color:var(--muted); border-radius:0 8px 8px 0;}
+
+  .bottom-nav{position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line); display:flex; justify-content:space-around; padding:8px 0 10px;}
+  .nav-item{display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10px; color:var(--muted); cursor:pointer; background:none; border:none; font-family:inherit;}
+  .nav-item.active{color:var(--forest); font-weight:700;}
+  .nav-item .ic{font-size:17px;}
+
+  .tab{display:none;}
+  .tab.active{display:block;}
+
+  .banner-card{padding:0;}
+  .banner-card img{display:block; width:100%; height:auto; cursor:zoom-in;}
+  .banner-actions{padding:12px 16px 14px; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+  .banner-actions span{font-size:11.5px; color:var(--muted);}
+  .wa-btn{background:#25a244; color:#fff; text-decoration:none; font-weight:800; font-size:13px; padding:10px 16px; border-radius:8px;}
+  #lightbox{display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:50; overflow:auto; padding:12px; -webkit-overflow-scrolling:touch;}
+  #lightbox img{display:block; max-width:100%; height:auto; margin:0 auto; border-radius:6px;}
+  #lightbox .close{position:fixed; top:10px; right:14px; color:#fff; font-size:30px; line-height:1; cursor:pointer; background:rgba(0,0,0,.5); border-radius:50%; width:40px; height:40px; text-align:center; padding-top:4px; z-index:51;}
+
+  .form-select-tabs{display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;}
+  .form-select-tabs button{border:1px solid var(--line); background:#fff; border-radius:100px; padding:5px 12px; font-size:11.5px; cursor:pointer;}
+  .form-select-tabs button.active{background:var(--forest); color:#fff; border-color:var(--forest);}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="crest"><img src="logo-192.png" alt="Hatfield Elite Academy crest"></div>
+  <div>
+    <h1>Hatfield Elite Academy</h1>
+    <p>Excellence in Education, Guided by Faith</p>
+  </div>
+</div>
+
+<main>
+
+  <!-- HOME / NEWS -->
+  <div id="tab-home" class="tab active">
+    <div class="card banner-card" id="bannerCard">
+      <img src="banner.jpg" alt="Hatfield Elite Academy is enrolling for Form 1 and Lower 6th for 2027" id="bannerImg" onerror="document.getElementById('bannerCard').style.display='none'">
+      <div class="banner-actions">
+        <span>Tap the banner to enlarge</span>
+        <a class="wa-btn" id="enquireBtn" href="#" target="_blank" rel="noopener">Enquire on WhatsApp</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>News &amp; Announcements</h2></div>
+      <div class="card-body" id="newsList"><div class="loading">Loading…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Upcoming on the Calendar</h2></div>
+      <div class="card-body" id="calendarPreview"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- ACADEMIC: timetable + homework -->
+  <div id="tab-academic" class="tab">
+    <div class="card">
+      <div class="card-head"><h2>Timetable</h2></div>
+      <div class="card-body">
+        <div class="form-select-tabs" id="timetableForms"></div>
+        <div id="timetableList"><div class="loading">Loading…</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Homework &amp; Assignments</h2></div>
+      <div class="card-body" id="homeworkList"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="tab-results" class="tab">
+    <div class="card">
+      <div class="card-head"><h2>Term Results — Form Highlights</h2></div>
+      <div class="card-body">
+        <p class="empty" style="margin-top:0;">Class-wide term averages by subject. Individual student results and full report cards unlock with parent portal accounts, coming soon.</p>
+        <div id="resultsList"><div class="loading">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEES -->
+  <div id="tab-fees" class="tab">
+    <div class="card">
+      <div class="card-head"><h2>Fee Schedule</h2></div>
+      <div class="card-body" id="feesList"><div class="loading">Loading…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Declare a Payment</h2></div>
+      <div class="card-body">
+        <div class="note-box">Fill this in, then tap "Send to Bursar" — it opens WhatsApp with your details ready to send. The Bursar will confirm your payment from there.</div>
+        <form class="pay-form" id="payForm">
+          <input type="text" name="studentName" placeholder="Student's full name" required>
+          <input type="text" name="form" placeholder="Form/Grade (e.g. Form 2A)" required>
+          <input type="text" name="amount" placeholder="Amount paid (USD)" required>
+          <select name="method" required>
+            <option value="">Payment method</option>
+            <option>EcoCash</option>
+            <option>Innbucks</option>
+            <option>Paynow</option>
+            <option>Bank transfer</option>
+            <option>Cash</option>
+          </select>
+          <input type="text" name="reference" placeholder="Reference / transaction ID">
+          <button type="submit">Send to Bursar via WhatsApp</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="lightbox">
+  <div class="close" id="lightboxClose">&times;</div>
+  <img src="banner.jpg" alt="Hatfield Elite Academy enrolment banner">
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-item active" data-tab="home"><div class="ic">🏠</div>Home</button>
+  <button class="nav-item" data-tab="academic"><div class="ic">📚</div>Academic</button>
+  <button class="nav-item" data-tab="results"><div class="ic">📊</div>Results</button>
+  <button class="nav-item" data-tab="fees"><div class="ic">💳</div>Fees</button>
+</div>
+
+<script>
+// ===== GitHub-backed data source (no external server) =====
+const REPO_OWNER = "mhofu88";
+const REPO_NAME = "hatfieldeliteacademy";
+const FINANCE_REPO = "hatfieldeliteacademy-finance";
+const BRANCH = "main";
+const BURSAR_WHATSAPP = "263775000713"; // update if this should be a different number
+
+const FINANCE_COLLECTIONS = ["fees", "payments"];
+function repoFor(name){ return FINANCE_COLLECTIONS.includes(name) ? FINANCE_REPO : REPO_NAME; }
+
+function cdnUrl(name){
+  return `https://cdn.jsdelivr.net/gh/${REPO_OWNER}/${repoFor(name)}@${BRANCH}/data/${name}.json`;
+}
+
+async function readCollection(name){
+  const res = await fetch(cdnUrl(name), { cache: "no-store" });
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error("read failed");
+  return res.json();
+}
+
+// ---- Tab switching ----
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+function fmtDate(iso){
+  try { return new Date(iso).toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' }); }
+  catch(e){ return iso || ''; }
+}
+
+// ---- News ----
+async function loadNews(){
+  const el = document.getElementById('newsList');
+  try {
+    const items = await readCollection('news');
+    if (!items.length){ el.innerHTML = '<div class="empty">No announcements yet — check back soon.</div>'; return; }
+    el.innerHTML = items.slice(0,8).map(n => `
+      <div class="item">
+        <p class="t">${n.title || ''}</p>
+        <p class="d">${n.body || ''}</p>
+        <p class="meta">${fmtDate(n.createdAt)}</p>
+      </div>`).join('');
+  } catch(e){ el.innerHTML = '<div class="empty">Couldn\'t load news right now.</div>'; }
+}
+
+// ---- Calendar preview (Home) ----
+async function loadCalendarPreview(){
+  const el = document.getElementById('calendarPreview');
+  try {
+    const items = await readCollection('calendar');
+    if (!items.length){ el.innerHTML = '<div class="empty">No events scheduled yet.</div>'; return; }
+    el.innerHTML = items.slice(0,5).map(c => `
+      <div class="item">
+        <p class="t">${c.title || ''}</p>
+        <p class="d">${fmtDate(c.date)}${c.time ? ' · ' + c.time : ''}${c.location ? ' · ' + c.location : ''}</p>
+      </div>`).join('');
+  } catch(e){ el.innerHTML = '<div class="empty">Couldn\'t load the calendar right now.</div>'; }
+}
+
+// ---- Timetable, grouped by form with tabs ----
+let timetableData = [];
+async function loadTimetable(){
+  const listEl = document.getElementById('timetableList');
+  const tabsEl = document.getElementById('timetableForms');
+  try {
+    timetableData = await readCollection('timetable');
+    if (!timetableData.length){ listEl.innerHTML = '<div class="empty">Timetable not published yet.</div>'; tabsEl.innerHTML = ''; return; }
+    const forms = [...new Set(timetableData.map(t => t.form).filter(Boolean))];
+    tabsEl.innerHTML = forms.map((f,i) => `<button class="${i===0?'active':''}" data-form="${f}">${f}</button>`).join('');
+    tabsEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      tabsEl.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      renderTimetable(b.dataset.form);
+    }));
+    renderTimetable(forms[0]);
+  } catch(e){ listEl.innerHTML = '<div class="empty">Couldn\'t load the timetable right now.</div>'; }
+}
+function renderTimetable(form){
+  const listEl = document.getElementById('timetableList');
+  const rows = timetableData.filter(t => t.form === form);
+  if (!rows.length){ listEl.innerHTML = '<div class="empty">No timetable entries for this form yet.</div>'; return; }
+  listEl.innerHTML = `<table><thead><tr><th>Day</th><th>Time</th><th>Subject</th></tr></thead><tbody>${
+    rows.map(r => `<tr><td>${r.day||''}</td><td>${r.time||''}</td><td>${r.subject||''}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+// ---- Homework ----
+async function loadHomework(){
+  const el = document.getElementById('homeworkList');
+  try {
+    const items = await readCollection('homework');
+    if (!items.length){ el.innerHTML = '<div class="empty">No homework posted yet.</div>'; return; }
+    el.innerHTML = items.slice(0,15).map(h => `
+      <div class="item">
+        <p class="t">${h.subject || ''} — ${h.form || ''}</p>
+        <p class="d">${h.description || ''}</p>
+        <p class="meta">Due ${fmtDate(h.dueDate)}</p>
+      </div>`).join('');
+  } catch(e){ el.innerHTML = '<div class="empty">Couldn\'t load homework right now.</div>'; }
+}
+
+// ---- Results highlights ----
+async function loadResults(){
+  const el = document.getElementById('resultsList');
+  try {
+    const items = await readCollection('results');
+    if (!items.length){ el.innerHTML = '<div class="empty">Results not published yet.</div>'; return; }
+    el.innerHTML = `<table><thead><tr><th>Form</th><th>Subject</th><th>Average</th><th>Term</th></tr></thead><tbody>${
+      items.map(r => `<tr><td>${r.form||''}</td><td>${r.subject||''}</td><td>${r.average||''}%</td><td>${r.term||''}</td></tr>`).join('')
+    }</tbody></table>`;
+  } catch(e){ el.innerHTML = '<div class="empty">Couldn\'t load results right now.</div>'; }
+}
+
+// ---- Fees ----
+async function loadFees(){
+  const el = document.getElementById('feesList');
+  try {
+    const items = await readCollection('fees');
+    if (!items.length){ el.innerHTML = '<div class="empty">Fee schedule not published yet.</div>'; return; }
+    el.innerHTML = items.map(f => `
+      <div class="fee-row"><span>${f.label || ''}${f.period ? ' · ' + f.period : ''}</span><span class="amt">$${f.amount || ''}</span></div>
+    `).join('');
+  } catch(e){ el.innerHTML = '<div class="empty">Couldn\'t load fees right now.</div>'; }
+}
+
+// ---- Payment declaration -> WhatsApp to Bursar ----
+document.getElementById('payForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  const text = `Payment declaration for Hatfield Elite Academy:%0A` +
+    `Student: ${data.studentName}%0A` +
+    `Form: ${data.form}%0A` +
+    `Amount: $${data.amount}%0A` +
+    `Method: ${data.method}%0A` +
+    `Reference: ${data.reference || 'N/A'}`;
+  window.location.href = `https://wa.me/${BURSAR_WHATSAPP}?text=${text}`;
+});
+
+// ---- Enrolment banner: enlarge on tap + WhatsApp enquiry ----
+const SCHOOL_WHATSAPP = "263775000713"; // school's enquiry number
+document.getElementById('enquireBtn').href =
+  `https://wa.me/${SCHOOL_WHATSAPP}?text=${encodeURIComponent("Hello Hatfield Elite Academy, I would like to enquire about enrolment for 2027.")}`;
+const lightbox = document.getElementById('lightbox');
+document.getElementById('bannerImg').addEventListener('click', () => { lightbox.style.display = 'block'; });
+document.getElementById('lightboxClose').addEventListener('click', () => { lightbox.style.display = 'none'; });
+lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.style.display = 'none'; });
+
+// ---- Init ----
+loadNews();
+loadCalendarPreview();
+loadTimetable();
+loadHomework();
+loadResults();
+loadFees();
+</script>
+</body>
+</html>
