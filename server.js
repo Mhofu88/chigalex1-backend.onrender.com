@@ -16,6 +16,11 @@ app.use("/listings", listingsRouter);
 app.use("/payments", paymentsRouter);
 app.use("/auth", authRouter);
 app.use("/", appDevRouter);
+app.get('/validation-key.txt', (req, res) => {
+  const isTestnet = req.hostname.includes('testnet');
+  const file = isTestnet ? 'validation-key-testnet.txt' : 'validation-key.txt';
+  res.type('text/plain').sendFile(path.join(__dirname, 'public', file));
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ════════════════════════════════════════════
