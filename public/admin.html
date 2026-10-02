@@ -962,8 +962,13 @@ function renderHilexLeads(){
       ${l.notes?'<div class="hilex-lead-meta"><strong>Business notes:</strong> '+esc(l.notes)+'</div>':''}
       <div class="row" style="margin-top:12px;"><div class="fg"><label>Status</label><select id="hilex-status-${id}">${['New','Contacted','Qualified','Quoted','In Progress','Won','Lost','Hold'].map(x=>'<option '+((l.status||'New')===x?'selected':'')+'>'+x+'</option>').join('')}</select></div></div>
       <label style="font-size:.76rem;display:block;margin-bottom:5px;font-weight:800;">Private admin note</label><textarea id="hilex-note-${id}" placeholder="Private admin note">${esc(l.adminNote||'')}</textarea>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">${wa?'<a class="btn-sm btn-teal" style="text-decoration:none;" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">💬 WhatsApp</a>':''}<button class="btn-sm btn-gold" onclick="saveHilexLead('${id}')">💾 Save LIVE</button></div>
-    </div>`;
+     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+  ${wa?'<a class="btn-sm btn-teal" style="text-decoration:none;" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">💬 WhatsApp</a>':''}
+  <button class="btn-sm btn-gold" onclick="saveHilexLead('${id}')">💾 Save LIVE</button>
+  <button class="btn-sm btn-red" onclick="deleteHilexLead('${id}')">🗑️ Delete Lead</button>
+</div>
+
+  </div>`;
   }).join('');
 }
 async function saveHilexLead(id){
@@ -975,7 +980,46 @@ async function saveHilexLead(id){
     if(!d.error) await loadHilexLeads();
   }catch(e){showResult('hilex-lead-result','Error: '+e.message,true);}
 }
+async function deleteHilexLead(id){
+  const lead = HILEX_LEADS.find(x => x.id === id);
 
+  const businessName = lead?.businessName || 'this lead';
+  const reference = lead?.reference || id;
+
+  const confirmed = confirm(
+    'Permanently delete "' + businessName + '" (' + reference + ')?\n\n' +
+    'This cannot be undone.'
+  );
+
+  if(!confirmed) return;
+
+  try{
+    const d = await api(
+      '/admin/bizapp/hilex-leads/' + encodeURIComponent(id),
+      'DELETE'
+    );
+
+    if(d.error){
+      showResult('hilex-lead-result', d.error, true);
+      return;
+    }
+
+    showResult(
+      'hilex-lead-result',
+      '🗑️ ' + businessName + ' deleted permanently.',
+      false
+    );
+
+    await loadHilexLeads();
+
+  }catch(e){
+    showResult(
+      'hilex-lead-result',
+      'Delete failed: ' + e.message,
+      true
+    );
+  }
+}
 // ── MANAGE LISTINGS (uses the existing admin routes in listings.js) ──
 async function loadAllListingsAdmin(){
   const el = document.getElementById('bizapp-all-listings');
