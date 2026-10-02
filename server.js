@@ -2056,6 +2056,59 @@ app.post('/admin/bizapp/hilex-leads/status', async (req, res) => {
   }
 });
 
+// 4. ADMIN — Permanently delete a HILEX → BizApp lead
+app.delete('/admin/bizapp/hilex-leads/:id', async (req, res) => {
+  if (!validateAdminKey(req, res)) return;
+  if (!requireRedis(res)) return;
+
+  try {
+    const id = sanitizeString(req.params.id, 120);
+
+    if (!id) {
+      return res.status(400).json({ error: 'Lead id is required' });
+    }
+
+    const stored = await redis.get(HILEX_LEADS_KEY);
+
+    let leads = stored
+      ? (typeof stored === 'string' ? JSON.parse(stored) : stored)
+      : [];
+
+    if (!Array.isArray(leads)) leads = [];
+
+    const index = leads.findIndex(lead => lead.id === id);
+
+    if (index === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+
+    const deletedLead = leads[index];
+
+    leads.splice(index, 1);
+
+    await redis.set(HILEX_LEADS_KEY, JSON.stringify(leads));
+
+    console.log(
+      `🗑️ HILEX lead deleted: ${deletedLead.reference || id} — ${deletedLead.businessName || ''}`
+    );
+
+    res.json({
+      success: true,
+      message: 'Lead permanently deleted',
+      deleted: {
+        id: deletedLead.id,
+        reference: deletedLead.reference,
+        businessName: deletedLead.businessName
+      },
+      total: leads.length
+    });
+
+  } catch (err) {
+    console.error('Delete HILEX lead error:', err);
+    res.status(500).json({ error: 'Failed to delete HILEX lead' });
+  }
+});
+
 // ════════════════════════════════════════════
 // ── CATCH-ALL — MUST BE LAST ──
 // ════════════════════════════════════════════
