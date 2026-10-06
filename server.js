@@ -695,6 +695,204 @@ app.post('/admin/a2u-test/payout', async (req, res) => {
   }
 });
 
+app.post('/admin/a2u-test/resume', async (req, res) => {
+  if (!validateAdminKey(req, res)) return;
+
+  try {
+    if (!requireRedis(res)) return;
+
+    const uid = sanitizeString(req.body?.uid || '', 128);
+    if (!uid) return res.status(400).json({ error: 'uid is required' });
+
+    const key = `a2u:testnet:recipient:${uid}`;
+    const recipient = await redis.hgetall(key);
+
+    if (!recipient?.uid) {
+      return res.status(404).json({ error: 'A2U recipient not found.' });
+    }
+
+    if (recipient.status === 'completed') {
+      return res.status(409).json({
+        error: 'This UID is already completed.',
+        paymentId: recipient.paymentId || '',
+        txid: recipient.txid || ''
+      });
+    }
+
+    if (!recipient.paymentId) {
+      return res.status(409).json({
+        error: 'No existing paymentId is stored for this recipient. Do not use recovery.'
+      });
+    }
+
+    // Only recover states where a payment was already created.
+    const recoverable = ['created', 'submit_failed', 'submitted', 'completion_unverified'];
+    if (!recoverable.includes(recipient.status)) {
+      return res.status(409).json({
+        error: `Recipient status "${recipient.status}" is not recoverable through this endpoint.`,
+        status: recipient.status
+      });
+    }
+
+    const pi = getTestnetPiClient();
+    const paymentId = recipient.paymentId;
+
+    // Fetch Pi's authoritative state before doing anything.
+    let payment = await pi.getPayment(paymentId);
+
+    // Safety: make sure this payment belongs to THIS Testnet recipient.
+    if (payment?.identifier !== paymentId) {
+      return res.status(409).json({ error: 'Pi payment identifier mismatch. Recovery stopped.' });
+    }
+    if (payment?.user_uid !== uid) {
+      return res.status(409).json({ error: 'Pi payment UID mismatch. Recovery stopped.' });
+    }
+    if (payment?.direction !== 'app_to_user') {
+      return res.status(409).json({ error: 'Payment is not app_to_user. Recovery stopped.' });
+    }
+    if (payment?.network !== 'Pi Testnet') {
+      return res.status(409).json({
+        error: `Payment network is "${payment?.network || 'unknown'}", not Pi Testnet. Recovery stopped.`
+      });
+    }
+    if (payment?.status?.cancelled === true || payment?.status?.user_cancelled === true) {
+      return res.status(409).json({ error: 'Pi reports this payment as cancelled. Recovery stopped.' });
+    }
+
+    let txid =
+      payment?.transaction?.txid ||
+      recipient.txid ||
+      '';
+
+    // If Pi already shows the payment completed/verified, only reconcile Redis.
+    if (
+      payment?.status?.developer_completed === true &&
+      payment?.transaction?.verified === true &&
+      txid
+    ) {
+      await redis.hset(key, {
+        status: 'completed',
+        txid,
+        paidAt: recipient.paidAt || new Date().toISOString(),
+        network: payment.network || '',
+        direction: payment.direction || '',
+        lastError: '',
+        updatedAt: new Date().toISOString()
+      });
+
+      return res.json({
+        success: true,
+        recovered: true,
+        action: 'reconciled_existing_completed_payment',
+        uid,
+        username: recipient.username || '',
+        paymentId,
+        txid,
+        payment
+      });
+    }
+
+    // No blockchain transaction yet: submit the EXISTING payment.
+    if (!txid) {
+      try {
+        txid = await pi.submitPayment(paymentId);
+        await redis.hset(key, {
+          status: 'submitted',
+          txid,
+          lastError: '',
+          updatedAt: new Date().toISOString()
+        });
+      } catch (submitError) {
+        const detail =
+          submitError?.response?.data?.error_message ||
+          submitError?.response?.data?.message ||
+          submitError?.message ||
+          'submit failed';
+
+        await redis.hset(key, {
+          status: 'submit_failed',
+          lastError: sanitizeString(String(detail), 500),
+          updatedAt: new Date().toISOString()
+        });
+
+        console.error('A2U Testnet recovery submit error:', submitError?.response?.data || submitError);
+        return res.status(502).json({
+          error: 'Existing payment could not be submitted. Do not create another payment.',
+          detail: sanitizeString(String(detail), 500),
+          uid,
+          paymentId
+        });
+      }
+    }
+
+    // Complete the existing payment using its existing/new txid.
+    let completedPayment;
+    try {
+      completedPayment = await pi.completePayment(paymentId, txid);
+    } catch (completeError) {
+      const detail =
+        completeError?.response?.data?.error_message ||
+        completeError?.response?.data?.message ||
+        completeError?.message ||
+        'completion failed';
+
+      await redis.hset(key, {
+        status: 'completion_unverified',
+        txid,
+        lastError: sanitizeString(String(detail), 500),
+        updatedAt: new Date().toISOString()
+      });
+
+      console.error('A2U Testnet recovery completion error:', completeError?.response?.data || completeError);
+      return res.status(502).json({
+        error: 'Transaction exists, but Pi completion failed. Do not send another payment.',
+        detail: sanitizeString(String(detail), 500),
+        uid,
+        paymentId,
+        txid
+      });
+    }
+
+    const ok =
+      completedPayment?.direction === 'app_to_user' &&
+      completedPayment?.network === 'Pi Testnet' &&
+      completedPayment?.status?.developer_completed === true &&
+      completedPayment?.transaction?.verified === true;
+
+    await redis.hset(key, {
+      status: ok ? 'completed' : 'completion_unverified',
+      txid,
+      paidAt: ok ? new Date().toISOString() : '',
+      network: completedPayment?.network || '',
+      direction: completedPayment?.direction || '',
+      lastError: ok ? '' : 'Pi returned payment without all completion/verification flags.',
+      updatedAt: new Date().toISOString()
+    });
+
+    return res.status(ok ? 200 : 409).json({
+      success: ok,
+      recovered: true,
+      action: 'resumed_existing_payment',
+      uid,
+      username: recipient.username || '',
+      paymentId,
+      txid,
+      payment: completedPayment,
+      message: ok
+        ? 'Existing A2U Testnet payment resumed, completed and verified.'
+        : 'Existing payment was processed, but Pi verification is not fully complete. Do not create another payment.'
+    });
+
+  } catch (error) {
+    const detail = error?.response?.data || error?.message || String(error);
+    console.error('A2U Testnet recovery error:', detail);
+    return res.status(500).json({
+      error: 'A2U recovery failed. Do not create another payment.',
+      detail
+    });
+  }
+});
+
 // Compatibility guard for the old failed endpoint: deliberately disabled.
 app.post('/admin/test-payout', (req, res) => {
   res.status(410).json({
