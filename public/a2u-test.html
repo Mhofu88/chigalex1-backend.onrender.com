@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chigalex1 Testnet A2U Recipient</title>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#0D0A1A;color:#F0EBF8;margin:0;padding:28px}
+.card{max-width:620px;margin:auto;background:#171126;border:1px solid #3b2854;border-radius:18px;padding:24px}
+h1{color:#F5C518}button{background:#7B2D8B;color:white;border:0;border-radius:12px;padding:14px 18px;font-weight:700;font-size:16px}
+.ok{color:#00D4AA}.err{color:#ff7a7a}code{word-break:break-all}
+</style>
+</head>
+<body><div class="card">
+<h1>π Chigalex1 — Testnet A2U</h1>
+<p>This page is only for the paired <strong>Testnet</strong> app qualification. Each Pioneer must open the paired Testnet app in Pi Browser and authenticate once.</p>
+<button id="join">Authenticate & register this Testnet UID</button>
+<p id="result"></p>
+</div>
+<script>
+Pi.init({version:"2.0", sandbox:false});
+const result=document.getElementById('result');
+document.getElementById('join').onclick=async()=>{
+  result.textContent='Connecting to Pi…'; result.className='';
+  try{
+    const auth=await Pi.authenticate(['username','wallet_address'],()=>{});
+    const r=await fetch('/api/a2u-test/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({accessToken:auth.accessToken})
+    });
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||'Registration failed');
+    result.className='ok';
+    result.innerHTML='✅ Registered @'+(d.username||'Pioneer')+'<br>UID: <code>'+d.uid+'</code><br>Status: '+d.status;
+  }catch(e){
+    result.className='err'; result.textContent='❌ '+e.message;
+  }
+};
+</script></body></html>
