@@ -542,7 +542,54 @@ app.get('/admin/a2u-test/status', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+app.delete('/admin/a2u-test/recipient', async (req, res) => {
+  if (!validateAdminKey(req, res)) return;
 
+  try {
+    if (!requireRedis(res)) return;
+
+    const uid = sanitizeString(req.body?.uid || '', 128);
+    if (!uid) {
+      return res.status(400).json({ error: 'uid is required' });
+    }
+
+    const key = `a2u:testnet:recipient:${uid}`;
+    const recipient = await redis.hgetall(key);
+
+    if (!recipient?.uid) {
+      return res.status(404).json({ error: 'A2U recipient not found.' });
+    }
+
+    // Never erase an audit trail once a payment has started.
+    if (
+      recipient.status !== 'registered' ||
+      recipient.paymentId ||
+      recipient.txid ||
+      recipient.paidAt
+    ) {
+      return res.status(409).json({
+        error: 'This recipient cannot be removed because an A2U payment has already started or completed.',
+        status: recipient.status || '',
+        paymentId: recipient.paymentId || '',
+        txid: recipient.txid || ''
+      });
+    }
+
+    await redis.srem('a2u:testnet:recipients', uid);
+    await redis.del(key);
+
+    res.json({
+      success: true,
+      uid,
+      username: recipient.username || '',
+      message: 'Unpaid A2U registration removed.'
+    });
+  } catch (error) {
+    console.error('A2U recipient removal error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+    
 // Clean A2U payout endpoint.
 // It pays only a UID previously authenticated through the paired Testnet app.
 // paymentId is persisted BEFORE blockchain submission to reduce double-pay risk.
