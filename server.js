@@ -814,9 +814,12 @@ app.post('/admin/a2u-test/resume', async (req, res) => {
           lastError: sanitizeString(String(detail), 500),
           updatedAt: new Date().toISOString()
         });
+console.error(
+  'A2U Testnet recovery submit error FULL:',
+  JSON.stringify(submitError?.response?.data || submitError, null, 2)
+);
 
-        console.error('A2U Testnet recovery submit error:', submitError?.response?.data || submitError);
-        return res.status(502).json({
+return res.status(502).json({
           error: 'Existing payment could not be submitted. Do not create another payment.',
           detail: sanitizeString(String(detail), 500),
           uid,
