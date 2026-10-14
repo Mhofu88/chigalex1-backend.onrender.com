@@ -2657,6 +2657,29 @@ app.delete('/admin/bizapp/hilex-leads/:id', async (req, res) => {
 });
 
 // ════════════════════════════════════════════
+
+// DigitalMall HQ integration: server-to-server requests only; never expose remote token in HTML.
+const DIGITALMALL_BASE_URL = process.env.DIGITALMALL_BASE_URL || 'https://digitalmall-pi.onrender.com';
+async function digitalMallProxy(req,res,method,route,payload){
+  if(!validateAdminKey(req,res))return;
+  const token=process.env.DIGITALMALL_ADMIN_TOKEN;
+  if(!token)return res.status(503).json({error:'DigitalMall HQ integration is not configured'});
+  try{
+    const upstream=await fetch(DIGITALMALL_BASE_URL+route,{
+      method,headers:{'x-admin-token':token,'Content-Type':'application/json'},
+      ...(payload?{body:JSON.stringify(payload)}:{}) ,signal:AbortSignal.timeout(20000)
+    });
+    const result=await upstream.json().catch(()=>({error:'Invalid DigitalMall response'}));
+    return res.status(upstream.status).json(result);
+  }catch(err){console.error('DigitalMall proxy:',err.message);return res.status(502).json({error:'DigitalMall unavailable. Try again shortly.'});}
+}
+app.get('/admin/digitalmall/merchants',(req,res)=>digitalMallProxy(req,res,'GET','/api/admin/merchants'));
+app.patch('/admin/digitalmall/merchants/:id',(req,res)=>{
+  if(!/^\d+$/.test(req.params.id))return res.status(400).json({error:'Invalid merchant ID'});
+  if(!['approved','rejected','pending'].includes(req.body?.status))return res.status(400).json({error:'Invalid status'});
+  return digitalMallProxy(req,res,'PATCH','/api/admin/merchants/'+req.params.id,{status:req.body.status});
+});
+
 // ── CATCH-ALL — MUST BE LAST ──
 // ════════════════════════════════════════════
 app.get('/testnet-login', (req, res) => {
