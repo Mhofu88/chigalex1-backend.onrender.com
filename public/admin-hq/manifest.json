@@ -1,0 +1,25 @@
+{
+  "id": "/admin-hq/",
+  "name": "Chigalex1 Admin HQ",
+  "short_name": "Admin HQ",
+  "description": "Chigalex1 unified administrative command centre",
+  "start_url": "/admin-hq/",
+  "scope": "/admin-hq/",
+  "display": "standalone",
+  "background_color": "#130e27",
+  "theme_color": "#160d30",
+  "icons": [
+    {
+      "src": "/admin-hq/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/admin-hq/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
