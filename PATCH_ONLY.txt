@@ -1,0 +1,31 @@
+// Stage 3B.1: read-only Testnet SDK diagnostic proxy (Main HQ -> separate Testnet service).
+// Requires CHIGALEX_TESTNET_ADMIN_KEY on the Admin HQ Render service.
+// No Pi payments, Redis operations, or wallet credentials are involved.
+app.get('/admin/a2u-test/sdk-version-proxy', async (req, res) => {
+  if (!validateAdminKey(req, res)) return;
+  res.set('Cache-Control', 'no-store');
+  const testnetKey = process.env.CHIGALEX_TESTNET_ADMIN_KEY;
+  if (!testnetKey) return res.status(503).json({error: 'Testnet diagnostic key not configured on Admin HQ service'});
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const upstream = await fetch('https://chigalex1-testnet.onrender.com/admin/a2u-test/sdk-version', {
+      method: 'GET',
+      headers: {'x-admin-key': testnetKey, 'Accept': 'application/json'},
+      signal: controller.signal,
+      redirect: 'error'
+    });
+    const contentType = upstream.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return res.status(502).json({error: 'Testnet returned a non-JSON response', upstreamStatus: upstream.status});
+    const data = await upstream.json();
+    if (!upstream.ok) return res.status(502).json({error: 'Testnet SDK diagnostic rejected request', upstreamStatus: upstream.status});
+    return res.json({
+      application: 'Chigalex1 Testnet',
+      sdk: typeof data.sdk === 'string' ? data.sdk : 'pi-backend',
+      installedVersion: typeof data.installedVersion === 'string' ? data.installedVersion : null,
+      paymentAttempted: false, redisModified: false
+    });
+  } catch (err) {
+    return res.status(502).json({error: 'Unable to reach Testnet SDK diagnostic'});
+  } finally { clearTimeout(timer); }
+});
